@@ -1,0 +1,9 @@
+{
+  "name": "nex/nex_message",
+  "description": "Configurable message countdowns and persistence",
+  "type": "drupal-custom-module",
+  "license": "GPL-2.0-or-later",
+  "require": {
+    "drupal/core": "^10 || ^11"
+  }
+}

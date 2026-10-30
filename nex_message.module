@@ -1,0 +1,35 @@
+<?php
+
+/**
+ * Implements hook_page_attachments().
+ */
+function nex_message_page_attachments(array &$attachments): void {
+  $config = \Drupal::config('nex_message.settings');
+  $policy = ['timeouts' => [
+    'status' => (int) $config->get('status'),
+    'warning' => (int) $config->get('warning'),
+    'error' => (int) $config->get('error'),
+  ], 'overrides' => []];
+  // Modules can set timeouts for stable message keys, without matching prose.
+  $cacheability = \Drupal\Core\Cache\CacheableMetadata::createFromRenderArray($attachments)
+    ->addCacheableDependency($config);
+  \Drupal::moduleHandler()->alter('nex_message_policy', $policy, $cacheability);
+  $attachments['#attached']['library'][] = 'nex_message/messages';
+  $attachments['#attached']['drupalSettings']['nexMessage'] = $policy;
+  $cacheability->applyTo($attachments);
+}
+
+/**
+ * Implements hook_help().
+ */
+function nex_message_help($route_name, \Drupal\Core\Routing\RouteMatchInterface $route_match) {
+  if ($route_name === 'help.page.nex_message') {
+    return [
+      'guide' => ['#markup' => file_get_contents(__DIR__ . '/help.html')],
+      'settings' => [
+        '#type' => 'link', '#title' => t('Configure Nex Message'),
+        '#url' => \Drupal\Core\Url::fromRoute('nex_message.settings'),
+      ],
+    ];
+  }
+}

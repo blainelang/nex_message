@@ -1,0 +1,5 @@
+nex_message.settings:
+  title: 'Nex Message'
+  description: 'Configure message countdowns and automatic dismissal.'
+  parent: system.admin_config_ui
+  route_name: nex_message.settings

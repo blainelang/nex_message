@@ -1,0 +1,7 @@
+nex_message.settings:
+  path: '/admin/config/user-interface/nex-message'
+  defaults:
+    _form: '\Drupal\nex_message\Form\SettingsForm'
+    _title: 'Nex Message'
+  requirements:
+    _permission: 'administer site configuration'

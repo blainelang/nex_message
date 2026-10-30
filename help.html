@@ -1,0 +1,38 @@
+<p><strong>Nex Message</strong> (<code>nex_message</code>) controls how long Drupal messages remain visible. It works independently of Nex Editorial.</p>
+<h2>How notifications work</h2>
+<p>Settings are measured in seconds. Status messages default to 10 seconds; warnings and errors default to 0. Zero means never close automatically. A persistent message can still have a manual close button provided by the theme.</p>
+<p>Timed messages show a countdown and a Keep open button. The countdown pauses while the pointer is over the message, while keyboard focus is inside it, and while the browser tab is hidden. Keep open stops automatic dismissal for that displayed message. Reduced-motion preferences disable the fade animation. Countdown ticks are not announced as live updates.</p>
+<p>This applies to Drupal message containers, including AJAX messages, and explicitly tagged message panels. It does not change validation, publishing, or editing locks. Content Lock messages currently use their Drupal message-type default unless an integration explicitly tags them; there is no automatic detection by message text or originating module.</p>
+<h2>Settings and links</h2><p>Use Configure on the Extend page, or Configuration → User interface → Nex Message. Choose a timeout for each message type. Warnings and errors should normally remain visible. Use Help on Extend or the help link on the settings form to return here.</p>
+<h2>Give a module its own message policy</h2><p>The public API uses <code>hook_nex_message_policy_alter()</code>, <code>data-nex-message</code> for a named policy key, and <code>data-nex-timeout</code> for an explicit timeout. Keys such as <code>editorial.saved</code> are developer-defined labels, not module machine names.</p>
+<p>Use a stable, namespaced key, such as editorial.saved, and implement hook_nex_message_policy_alter(). The module must also tag the message with that key. Defining a policy alone does not identify or change existing messages. The hook belongs in the sending module's .module file.</p>
+<pre><code>// Example integration in nex_editorial.module (not installed automatically):
+function nex_editorial_nex_message_policy_alter(array &amp;$policy, \Drupal\Core\Cache\CacheableMetadata $cacheability): void {
+  $policy[&#x27;overrides&#x27;][&#x27;editorial.saved&#x27;] = 15;
+  $policy[&#x27;overrides&#x27;][&#x27;editorial.pending_draft&#x27;] = 0;
+}
+
+// Where the module creates its message:
+$message = [
+  &#x27;#type&#x27; =&gt; &#x27;html_tag&#x27;,
+  &#x27;#tag&#x27; =&gt; &#x27;span&#x27;,
+  &#x27;#attributes&#x27; =&gt; [&#x27;data-nex-message&#x27; =&gt; &#x27;editorial.saved&#x27;],
+  &#x27;#value&#x27; =&gt; t(&#x27;Draft saved for @title.&#x27;, [&#x27;@title&#x27; =&gt; $node-&gt;label()]),
+];
+\Drupal::messenger()-&gt;addStatus(\Drupal::service(&#x27;renderer&#x27;)-&gt;renderInIsolation($message));</code></pre>
+<h2>Direct override or permanent notice</h2>
+<p>For a one-off timeout, add data-nex-timeout="20" to the message wrapper. Use data-nex-timeout="0" to keep it visible. A render-array example:</p>
+<pre><code>&#x27;#attributes&#x27; =&gt; [
+  &#x27;data-nex-message&#x27; =&gt; &#x27;editorial.pending_draft&#x27;,
+  &#x27;data-nex-timeout&#x27; =&gt; &#x27;0&#x27;,
+],</code></pre>
+<p>The Nex Editorial draft notice uses an explicit zero timeout, so changing the warning default cannot hide it. No dependency is required just to output these harmless attributes; countdowns only operate while Nex Message is enabled.</p>
+<h2>Store module-specific settings in configuration</h2>
+<p>A module can supply its own configuration schema and settings form, then read those values in its policy hook. Add its configuration as a cache dependency using the second hook argument:</p>
+<pre><code>$config = \Drupal::config(&#x27;my_module.settings&#x27;);
+$policy[&#x27;overrides&#x27;][&#x27;editorial.saved&#x27;] = (int) $config-&gt;get(&#x27;saved_message_timeout&#x27;);
+$cacheability-&gt;addCacheableDependency($config);</code></pre>
+<p>This configuration example uses a hypothetical my_module.settings object; saved_message_timeout is not a built-in Nex Editorial setting. Define its schema, default value and settings form in the sending module, and validate nonnegative seconds. Add appropriate cache contexts for any policies that vary by route, language, role, or user. Site-wide policies are simplest.</p>
+<h2>Precedence and grouped messages</h2>
+<ul><li>An explicit data-nex-timeout takes precedence over a named policy for the same element.</li><li>A named policy takes precedence over the message-type default.</li><li>If any tagged message in a grouped container has timeout 0, the whole container remains visible.</li><li>Otherwise, the longest valid explicit or named timeout in the container is used. Untagged messages share that container's lifetime.</li><li>Unknown message types remain visible; invalid overrides fall back to the default.</li></ul>
+<p>Always use translated strings with escaped placeholders or safe render arrays. Never concatenate user input into HTML. Avoid matching translated wording to decide timing.</p>

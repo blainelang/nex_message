@@ -1,0 +1,13 @@
+nex_message.settings:
+  type: config_object
+  label: 'Message notification settings'
+  mapping:
+    status:
+      type: integer
+      label: 'Status timeout in seconds'
+    warning:
+      type: integer
+      label: 'Warning timeout in seconds'
+    error:
+      type: integer
+      label: 'Error timeout in seconds'

@@ -1,0 +1,10 @@
+messages:
+  js:
+    js/messages.js: {}
+  css:
+    theme:
+      css/messages.css: {}
+  dependencies:
+    - core/drupal
+    - core/drupalSettings
+    - core/once

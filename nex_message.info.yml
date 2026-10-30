@@ -1,0 +1,6 @@
+name: Nex Message
+type: module
+description: 'Configurable message countdowns and persistent notifications.'
+package: Nextide
+core_version_requirement: ^10 || ^11
+configure: nex_message.settings
